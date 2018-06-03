@@ -2,6 +2,24 @@ import random
 from probMaker import probArr
 from modelMaker import Model
 
+valid = {}
+with open("../data/trainingData.txt", 'r') as f:
+    numState = int(f.readline())
+    numAction = int(f.readline())
+    for i in range(numState+numAction):
+        f.readline()
+    for line in f:
+        builtStr = ""
+        words = line.strip().split(",")
+        for i in range(numState):
+            if(len(builtStr) != 0):
+                builtStr += ","
+            builtStr += words[i]
+        for i in range(2*numState,len(words)-1):
+            builtStr += "," + words[i]
+
+        valid[builtStr] = words[-1]
+
 def wordToReward(state,disc):
     if(len(state)):
         return disc[0][state[0]]
@@ -9,11 +27,6 @@ def wordToReward(state,disc):
         return None
 
 def rewardFunc(finalWordReward,initWordReward,action):
-    valid = {}
-    valid["the,dog"] = 1
-    valid["dog,goes"] = 1
-    valid["goes,meow"] = 1
-    valid["meow,the"] = 1
     return (initWordReward+","+action) in valid
 
 def getIndicesArray(valsArray, probObj):
