@@ -1,9 +1,9 @@
 from os import walk
 import os.path
-toExclude = ["TrainingDataGenerator.py", "trainingData.txt"]
+toExclude = ["TrainingDataGenerator.py", "trainingData.txt", "serializedPolicy.bin"]
 words = set([])
 stateCounts = {}
-stateLength = 2
+stateLength = 1
 actionLength = 1
 delimiter = '@'
 typeDelimiter = '|'
