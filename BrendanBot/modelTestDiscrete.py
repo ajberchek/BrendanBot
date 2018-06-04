@@ -17,7 +17,7 @@ with open("../data/trainingData.txt", 'r') as f:
         for opt in opts:
             words += opt.split("|")
 
-        for i in range(numAction, numState):
+        for i in range(0, numState):
             if(len(builtStr) != 0):
                 builtStr += "|"
             builtStr += words[i]
@@ -34,7 +34,8 @@ def wordToReward(state,disc):
     return toRet
 
 def rewardFunc(finalWordReward,initWordReward,action):
-    builtStr = "|".join(initWordReward[len(action):] + action)
+    print(valid)
+    builtStr = "|".join(initWordReward + action)
     return builtStr in valid
 
 def getIndicesArray(valsArray, probObj):
@@ -47,7 +48,7 @@ def getIndicesArray(valsArray, probObj):
 prob = probArr("../data/trainingData.txt")
 mdp = Model(prob,wordToReward,rewardFunc)
 
-state = ["the", "dog"]
+state = ["the"]
 print(state[-1], end = ' ')
 #for i in range(2*prob.states):
 #    state.append(prob.disc[-1][random.randint(0,prob.actions-1)])

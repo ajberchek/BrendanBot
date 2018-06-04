@@ -1,9 +1,8 @@
-2
+1
 1
 the|dog|goes|meow
 the|dog|goes|meow
-the|dog|goes|meow
-the|dog@the|dog@goes@1
-dog|goes@dog|goes@meow@1
-meow|the@meow|the@dog@1
-goes|meow@goes|meow@the@1
+meow@meow@the@1
+the@the@dog@1
+dog@dog@goes@1
+goes@goes@meow@1
