@@ -25,6 +25,14 @@ class Model:
         self.modelIterate()
 
     def sumStatePrimes(self,action,stateIndices,indices=[]):
+        probPointer = self.prob.probMatr
+        for i in range(len(indices)):
+            if(len(probPointer)):
+                probPointer = probPointer[indices[i]]
+            else:
+                return 0
+        if(len(probPointer) == 0):
+            return 0
         if(len(indices) == self.prob.states):
             nextState = repr(indices)
             indices += stateIndices
@@ -90,6 +98,8 @@ class Model:
             if(equalCount == len(self.actions)-1):
                 self.policy[thisState] = self.noAction
 
+            print("REPR: " + str(indices))
+            print("DIFF: " + str(diff))
             return diff
         else:
             worstDiff = 0

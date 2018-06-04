@@ -1,6 +1,12 @@
 import random
+import pickle
 from probMaker import probArr
 from modelMaker import Model
+import os.path
+import os
+
+TRAINING_DATA = "../data/trainingData.txt"
+POLICY_PICKLED = "../data/serializedPolicy.bin"
 
 valid = {}
 numState = 0
@@ -34,7 +40,6 @@ def wordToReward(state,disc):
     return toRet
 
 def rewardFunc(finalWordReward,initWordReward,action):
-    print(valid)
     builtStr = "|".join(initWordReward + action)
     return builtStr in valid
 
@@ -45,8 +50,33 @@ def getIndicesArray(valsArray, probObj):
     return toRet
 
 
-prob = probArr("../data/trainingData.txt")
-mdp = Model(prob,wordToReward,rewardFunc)
+policy = None
+prob = None
+if(os.path.exists(POLICY_PICKLED) and os.path.getmtime(TRAINING_DATA) >= os.path.getmtime(POLICY_PICKLED)):
+    prob = probArr("../data/trainingData.txt")
+    mdp = Model(prob,wordToReward,rewardFunc)
+    policy = mdp.policy
+    f = open(POLICY_PICKLED, 'wb')
+    pickle.dump(policy,f)
+    f.close()
+else:
+    if(not os.path.exists(POLICY_PICKLED)):
+        fd = open(POLICY_PICKLED, 'a')
+        fd.close()
+
+        prob = probArr("../data/trainingData.txt")
+        mdp = Model(prob,wordToReward,rewardFunc)
+        policy = mdp.policy
+        f = open(POLICY_PICKLED, 'wb')
+        pickle.dump(policy,f)
+        f.close()
+    else:
+        print("LOAD")
+        prob = probArr("../data/trainingData.txt")
+        f = open(POLICY_PICKLED, 'rb')
+        policy = pickle.load(f)
+        f.close()
+
 
 state = ["the"]
 print(state[-1], end = ' ')
@@ -58,8 +88,8 @@ print(state[-1], end = ' ')
 numWords = 100
 
 while(numWords):
-    indices = getIndicesArray(state, mdp.prob)
-    chosenWord = mdp.policy.get(repr(indices))
+    indices = getIndicesArray(state, prob)
+    chosenWord = policy.get(repr(indices))
     state = state[1:] + [chosenWord]
 
     print(state[-1], end = ' ')
