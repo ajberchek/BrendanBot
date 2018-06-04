@@ -3,6 +3,8 @@ from probMaker import probArr
 from modelMaker import Model
 
 valid = {}
+numState = 0
+numAction = 0
 with open("../data/trainingData.txt", 'r') as f:
     numState = int(f.readline())
     numAction = int(f.readline())
@@ -10,24 +12,30 @@ with open("../data/trainingData.txt", 'r') as f:
         f.readline()
     for line in f:
         builtStr = ""
-        words = line.strip().split(",")
-        for i in range(numState):
+        opts = line.strip().split("@")
+        words = []
+        for opt in opts:
+            words += opt.split("|")
+
+        for i in range(numAction, numState):
             if(len(builtStr) != 0):
-                builtStr += ","
+                builtStr += "|"
             builtStr += words[i]
         for i in range(2*numState,len(words)-1):
-            builtStr += "," + words[i]
+            builtStr += "|"
+            builtStr += words[i]
 
         valid[builtStr] = words[-1]
 
 def wordToReward(state,disc):
-    if(len(state)):
-        return disc[0][state[0]]
-    else:
-        return None
+    toRet = []
+    for i in range(len(state)):
+        toRet.append(disc[i][state[i]])
+    return toRet
 
 def rewardFunc(finalWordReward,initWordReward,action):
-    return (initWordReward+","+action) in valid
+    builtStr = "|".join(initWordReward[len(action):] + action)
+    return builtStr in valid
 
 def getIndicesArray(valsArray, probObj):
     toRet = []
@@ -38,9 +46,8 @@ def getIndicesArray(valsArray, probObj):
 
 prob = probArr("../data/trainingData.txt")
 mdp = Model(prob,wordToReward,rewardFunc)
-mdp.printPolicy()
 
-state = ["the"]
+state = ["the", "dog"]
 print(state[-1], end = ' ')
 #for i in range(2*prob.states):
 #    state.append(prob.disc[-1][random.randint(0,prob.actions-1)])

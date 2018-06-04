@@ -5,7 +5,7 @@ class probArr:
     #UpperBoundBucket0,UpperBoundBucket1,...,UpperBoundBucketN-1,LowerBoundBucketN repeated number of states times
     #UpperBoundBucket0,UpperBoundBucket1,...,UpperBoundBucketN-1,LowerBoundBucketN repeated number of actions times
     #Then the data should follow, formatted as time,state0|state1|...|stateN,action0|action1|...|actionN
-    def __init__(self,filename):
+    def __init__(self,filename, typeDelimiter='|', delimiter='@'):
         self.states = 0
         self.actions = 0
         self.disc = []
@@ -14,6 +14,8 @@ class probArr:
         self.filename = filename
 
         self.datFile = open(self.filename,'r')
+        self.typeDelimiter = typeDelimiter
+        self.delimiter = delimiter
         self.createDiscretizations()
         self.buildProbMatr()
 
@@ -28,20 +30,20 @@ class probArr:
         self.states = int(self.datFile.readline())
         self.actions = int(self.datFile.readline())
         for _ in range(0,self.states+self.actions):
-            toAppend = [i.strip() for i in self.datFile.readline().split(",")]
+            toAppend = [i.strip() for i in self.datFile.readline().split(self.typeDelimiter)]
             self.disc.append(toAppend)
 
     def buildProbMatr(self):
         lastState = None
         lastAction = None
         for line in self.datFile:
-            parsed = line.split(',')
-            lastState = parsed[0].split('|')
+            parsed = line.split(self.delimiter)
+            lastState = parsed[0].split(self.typeDelimiter)
             if(len(parsed) > 2):
-                lastAction = parsed[1].split('|')
-                thisState = parsed[2].split('|')
+                lastAction = parsed[2].split(self.typeDelimiter)
+                thisState = parsed[1].split(self.typeDelimiter)
             else:
-                thisState = parsed[1].split('|')
+                thisState = parsed[1].split(self.typeDelimiter)
 
             indices = []
             probPointer = self.probMatr

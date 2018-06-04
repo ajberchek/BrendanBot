@@ -37,11 +37,16 @@ class Model:
             if(len(probPointer)):
                 btcFinal = self.stateToReward(indices[:self.prob.states],self.prob.disc)
                 btcInit = self.stateToReward(indices[self.prob.states:2*self.prob.states],self.prob.disc)
+                if(type(action) != type([])):
+                    action = [action]
                 reward = self.rewardFunc(btcFinal,btcInit,action)
                 #print("NextState: " + str(self.value.get(nextState,0)))
                 # TODO change below for a multi dimensional action
-                index = self.prob.getIndex(action,self.prob.disc[-1])
-                probPointer = probPointer[index]
+                for i in range(len(action)):
+                    index = self.prob.getIndex(action[i],self.prob.disc[-1])
+                    if(len(probPointer)):
+                        probPointer = probPointer[index]
+
                 if(len(probPointer)):
                     return probPointer[0]*(reward+(self.discountFactor*self.value.get(nextState,0)))
                 else:
