@@ -1,5 +1,11 @@
 import ast
+from queue import Queue
 from probMaker import probArr
+import multiprocessing
+from multiprocessing.pool import Pool
+from threading import Lock
+from functools import partial
+POOL_SIZE = 8
 hack = True
 
 class Model:
@@ -22,6 +28,11 @@ class Model:
         self.discountFactor = 0.95
         #self.finishedDifference = 0.001
         self.finishedDifference = 0.8
+
+        self.pool = Pool(processes=POOL_SIZE)
+        self.guard = Lock()
+        self.outQ = Queue(maxsize=POOL_SIZE)
+        self.results = [0 for i in range(POOL_SIZE)]
 
         self.modelIterate()
 
@@ -49,15 +60,17 @@ class Model:
                 if(type(action) != type([])):
                     action = [action]
                 reward = self.rewardFunc(btcFinal,btcInit,action)
-                #print("NextState: " + str(self.value.get(nextState,0)))
-                # TODO change below for a multi dimensional action
                 for i in range(len(action)):
                     index = self.prob.getIndex(action[i],self.prob.disc[-1])
                     if(len(probPointer)):
                         probPointer = probPointer[index]
 
                 if(len(probPointer)):
-                    return probPointer[0]*(reward+(self.discountFactor*self.value.get(nextState,0)))
+                    # Protect value from concurrency
+                    self.guard.acquire()
+                    toRet = probPointer[0]*(reward+(self.discountFactor*self.value.get(nextState,0)))
+                    self.guard.release()
+                    return toRet
                 else:
                     return 0
             else:
@@ -73,6 +86,10 @@ class Model:
                 sumVal += self.sumStatePrimes(action,stateIndices,indices + [i])
 
             return sumVal
+
+    def worker(self,indices):
+        val = self.modelIteration(indices)
+        self.results[indices[0]%POOL_SIZE] = val
 
     def modelIteration(self,indices=[]):
         if(len(indices) == self.prob.states):
@@ -97,17 +114,37 @@ class Model:
             #print(bestActionVal)
             #print(bestAction)
 
+            self.guard.acquire()
             diff = abs(bestActionVal - self.value.get(thisState,0))
             self.value[thisState] = bestActionVal
             self.policy[thisState] = bestAction
             if(equalCount == len(self.actions)-1):
                 self.policy[thisState] = self.noAction
+            self.guard.release()
 
             return diff
         else:
             worstDiff = 0
+
+            # Start up some threads
+            if(len(indices) == 0):
+                domainSize = len(self.prob.disc[0])
+                for i in range(0,domainSize,POOL_SIZE):
+                    threads = []
+                    for j in range(i,min(domainSize,i+POOL_SIZE)):
+                        threads.append(multiprocessing.Process(target=self.worker,args=(list(indices+[j]),)))
+                        threads[-1].start()
+                    for j in range(min(domainSize-i,POOL_SIZE)):
+                        threads[j].join()
+                    for j in range(min(domainSize-i,POOL_SIZE)):
+                        val = self.results[j]
+                        worstDiff = max(worstDiff,val)
+
+                return worstDiff
+
             for i in range(len(self.prob.disc[len(indices)])):
                 worstDiff = max(worstDiff,self.modelIteration(indices + [i]))
+
             if(len(indices)):
                 print("\r" + str(indices[-1]/len(self.prob.disc[len(indices)])), end='')
             return worstDiff
