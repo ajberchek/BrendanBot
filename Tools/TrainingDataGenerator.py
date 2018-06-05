@@ -3,7 +3,7 @@ import os.path
 toExclude = ["TrainingDataGenerator.py", "trainingData.txt", "serializedPolicy.bin"]
 words = set([])
 stateCounts = {}
-stateLength = 1
+stateLength = 2
 actionLength = 1
 delimiter = '@'
 typeDelimiter = '|'
@@ -38,7 +38,7 @@ with open("../data/" + trainingDataFile, 'w') as f:
     f.write(str(actionLength) + "\n")
     domain = typeDelimiter.join(words) + "\n"
     for _ in range(stateLength+actionLength):
-        f.write(domain)
+        f.write(domain.lower())
     for key,val in stateCounts.items():
         toWrite = [key.split(delimiter)[0], key, str(val)]
-        f.write(delimiter.join(toWrite) + "\n")
+        f.write(delimiter.join(toWrite).lower() + "\n")

@@ -1,5 +1,6 @@
 import ast
 from probMaker import probArr
+hack = True
 
 class Model:
     #stateToBtc should take state and discretizations as parameters and return the correspoinding bitcion state as a float
@@ -20,7 +21,7 @@ class Model:
         self.noAction = "NoDataToDetermineAction"
         self.discountFactor = 0.95
         #self.finishedDifference = 0.001
-        self.finishedDifference = 0.001
+        self.finishedDifference = 0.8
 
         self.modelIterate()
 
@@ -83,7 +84,11 @@ class Model:
             bestAction = ""
             equalCount = 0
             for i in range(len(self.actions)):
-                actionVal = self.sumStatePrimes(self.actions[i],indices)
+                actionVal = 0
+                if hack:
+                    actionVal = self.sumStatePrimes(self.actions[i],list(indices),list(indices))
+                else:
+                    actionVal = self.sumStatePrimes(self.actions[i],indices)
                 #print(self.actions[i] + ": " + str(actionVal))
                 equalCount += bestActionVal == actionVal == 0
                 if(bestActionVal < actionVal):
@@ -98,13 +103,13 @@ class Model:
             if(equalCount == len(self.actions)-1):
                 self.policy[thisState] = self.noAction
 
-            print("REPR: " + str(indices))
-            print("DIFF: " + str(diff))
             return diff
         else:
             worstDiff = 0
             for i in range(len(self.prob.disc[len(indices)])):
                 worstDiff = max(worstDiff,self.modelIteration(indices + [i]))
+            if(len(indices)):
+                print("\r" + str(indices[-1]/len(self.prob.disc[len(indices)])), end='')
             return worstDiff
 
     def modelIterate(self):
